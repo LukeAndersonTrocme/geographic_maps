@@ -17,14 +17,14 @@ suppressPackageStartupMessages({
 })
 
 # 1. Config
-rdsPath       <- "~/Documents/Genizon/Data/RDS/"
-figurePath    <- "~/Documents/Genizon/Genizon_Scripts/Latex/Figures/"
-output_map_rds<- file.path(rdsPath, "background_map_Jan2025.rds")
-output_map_jpg<- file.path(figurePath, "background_map_Jan2025.jpg")
+rdsPath       <- "~/Documents/geographic_maps/data/"
+figurePath    <- "~/Documents/geographic_maps/output/"
+output_map_rds<- file.path(rdsPath, "background_map.rds")
+output_map_jpg<- file.path(figurePath, "background_map.jpg")
 
 political_file<- file.path(rdsPath, "political_processed.rds")
 wts_file      <- file.path(rdsPath, "wts_processed.rds")
-water_file    <- file.path(rdsPath, "complete_watercourse_simplified_by_wts.RDS")
+water_file    <- file.path(rdsPath, "complete_watercourse_simplified_by_wts.rds")
 
 # 2. Read data
 message("Reading input RDS files...")

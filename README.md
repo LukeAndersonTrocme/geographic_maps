@@ -14,9 +14,9 @@ This repository contains an R script and associated data files for building a **
 - **data/complete_watercourse_simplified_by_wts.RDS**  
   - Watercourse lines/polygons (rivers, lakes) aggregated and simplified.
 
-- **output/background_map_Jan2025.rds**  
+- **output/background_map.rds**  
   - The final ggplot object containing the background map layers.
-- **output/background_map_Jan2025.jpg**  
+- **output/background_map.jpg**  
   - A high-resolution image of the final map.
 
 ## Usage
@@ -53,7 +53,7 @@ We used this to build the watershed polygons (wts_processed.rds) and watercourse
 
 [Open Canada: Digital Elevation Model](https://open.canada.ca/data/en/dataset/7f245e4d-76c2-4caa-951a-45d1d2051333)
 
-Note: The script here doesn’t directly use DEM data, but it’s another relevant geospatial dataset from Open Canada.
+Note: The script here doesn’t directly use DEM data (yet), but it’s another relevant geospatial dataset from Open Canada.
 
 
 All of these data sources are made accessible via [Open Canada’s geospatial portal](https://open.canada.ca/).
