@@ -37,23 +37,23 @@ Rscript create_background_map.R
 ## Data Sources
 1. Administrative Boundaries in Canada - CanVec Series
 
-(Open Canada: Administrative Boundaries)[https://open.canada.ca/data/en/dataset/306e5004-534b-4110-9feb-58e3a5c3fd97]
+[Open Canada: Administrative Boundaries](https://open.canada.ca/data/en/dataset/306e5004-534b-4110-9feb-58e3a5c3fd97)
 The CanVec multiscale series provides prepackaged downloads or via a Geospatial data extraction tool.
 Used here to obtain the political boundaries for Quebec (political_processed.rds).
 
 2. National Hydro Network - NHN - GeoBase Series
 
-(Open Canada: National Hydro Network)[https://open.canada.ca/data/en/dataset/a4b190fe-e090-4e6d-881e-b87956c07977]
+[Open Canada: National Hydro Network](https://open.canada.ca/data/en/dataset/a4b190fe-e090-4e6d-881e-b87956c07977)
 Contains geospatial data describing Canada’s inland surface waters (lakes, rivers, streams, obstacles).
 We used this to build the watershed polygons (wts_processed.rds) and watercourse data (complete_watercourse_simplified_by_wts.RDS).
 
 3. Canadian Digital Elevation Model (CDEM)
 
-(Open Canada: Digital Elevation Model)[https://open.canada.ca/data/en/dataset/7f245e4d-76c2-4caa-951a-45d1d2051333]
+[Open Canada: Digital Elevation Model](https://open.canada.ca/data/en/dataset/7f245e4d-76c2-4caa-951a-45d1d2051333)
 Note: The script here doesn’t directly use DEM data, but it’s another relevant geospatial dataset from Open Canada.
 
 
-All of these data sources are made accessible via (Open Canada’s geospatial portal)[https://open.canada.ca/].
+All of these data sources are made accessible via [Open Canada’s geospatial portal](https://open.canada.ca/).
 
 ## License
 Licensed under the MIT License.
