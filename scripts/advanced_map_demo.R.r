@@ -1,162 +1,121 @@
 #!/usr/bin/env Rscript
 
 # advanced_map_demo.R
-# This script demonstrates how to:
-# 1) Load and visualize elevation data from an RDS file
-# 2) Plot a geographic map with water features
-# 3) Draw a circle around a focal point on the map
+# This script introduces geographic data visualization by:
+# 1) Loading and visualizing elevation data from an RDS file
+# 2) Plotting a geographic map with water features
+# 3) Drawing a reference circle around a focal point
 
 suppressPackageStartupMessages({
-  library(dplyr)
-  library(sf)
-  library(ggplot2)
-  library(ggspatial)   # For annotation_scale, annotation_north_arrow
-  library(here)        # For relative file paths
+  library(dplyr)      # Data manipulation
+  library(sf)         # Handling spatial data
+  library(ggplot2)    # Data visualization
+  library(ggspatial)  # Scale bar and north arrow
+  library(here)       # Relative file paths
 })
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 1. Define Paths (Relative to Repository)
+# 1. Define Paths and Load Data
 # ─────────────────────────────────────────────────────────────────────────────
 
+# Define file paths for input datasets
 data_dir   <- here::here("data")
 output_dir <- here::here("output")
 
-water_file      <- file.path(data_dir, "complete_watercourse_simplified_by_wts.rds")
-elevation_file  <- file.path(data_dir, "alt_raster.RDS")  # Preprocessed elevation data
+water_file      <- file.path(data_dir, "complete_watercourse_simplified_by_wts.rds") # Simplified water features (rivers, lakes)
+elevation_file  <- file.path(data_dir, "alt_raster.RDS")  # Preprocessed elevation raster
 
-output_file     <- file.path(output_dir, "advanced_map_demo.jpg")
+output_file     <- file.path(output_dir, "advanced_map_demo.jpg") # Output file
+
+# Load spatial datasets
+simplified_water <- readRDS(water_file)   # Load water features
+gplot_elevation <- readRDS(elevation_file) # Load preprocessed elevation raster
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 2. Define Map Limits and Focal Point
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Define focal point (Mont Éboulements)
+# Define the focal point: Mont Éboulements (impact crater site in Charlevoix)
 focal_point <- data.frame(name = "Mont Éboulements", lon = -70.3, lat = 47.5333)
+
+# Define bounding box (xmin, xmax, ymin, ymax) in geographic coordinates (EPSG:4269)
+bbox <- sf::st_bbox(c(
+  xmin = -73.0,  # Western boundary
+  xmax = -68.0,  # Eastern boundary
+  ymin = 46.5,   # Southern boundary
+  ymax = 49.0    # Northern boundary
+), crs = 4269)
+
+# Define margin factor (5% inward crop)
+# This ensures the map content aligns properly by trimming mismatched edges
+margin_factor <- 0.05  
+x_range <- bbox$xmax - bbox$xmin  # Longitude range
+y_range <- bbox$ymax - bbox$ymin  # Latitude range
+
+# Filter elevation data to match bounding box
+gplot_elevation <- gplot_elevation %>%
+  filter(x >= bbox$xmin, x <= bbox$xmax, y >= bbox$ymin, y <= bbox$ymax)
+
+# Crop water features directly using bbox (EPSG:4269, already in latitude/longitude)
+sf::sf_use_s2(FALSE)  # Disable spherical geometry to simplify planar operations
+simplified_water <- st_crop(simplified_water, bbox)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 3. Create a Reference Circle (27 km radius)
+# ─────────────────────────────────────────────────────────────────────────────
 
 # Function to convert kilometers to degrees (~valid at mid-latitudes)
 km_to_deg <- function(km) km / 111  
 
-# Define bounding box limits (10 km buffer from focal point)
-buffer_km <- 100  
-
-# Define the current bounding box
-bbox <- sf::st_bbox(c(
-  xmin = -73.0,  
-  xmax = -68.0,  
-  ymin = 46.5,  
-  ymax = 49.0  
-), crs = 4269)
-
-# Define cropping factor (5% margin reduction)
-margin_factor <- 0.05  
-x_range <- bbox$xmax - bbox$xmin
-y_range <- bbox$ymax - bbox$ymin
-
-# Print bbox details before cropping
-message("Bounding box limits: xmin=", bbox$xmin, ", xmax=", bbox$xmax,
-        ", ymin=", bbox$ymin, ", ymax=", bbox$ymax)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 3. Read and Crop Data
-# ─────────────────────────────────────────────────────────────────────────────
-
-# Ensure all required files exist
-missing_files <- c(water_file, elevation_file)[!file.exists(c(water_file, elevation_file))]
-if (length(missing_files) > 0) {
-  stop("Error: Missing input files:\n", paste(missing_files, collapse = "\n"))
-}
-
-# Read spatial data
-simplified_water <- readRDS(water_file)
-
-# Print CRS info
-message("CRS of water features from RDS: ", st_crs(simplified_water))
-
-# Read elevation data
-gplot_elevation <- readRDS(elevation_file)
-
-# Check if elevation data has CRS (it may not, since it's a data frame)
-if ("sf" %in% class(gplot_elevation)) {
-  message("CRS of elevation data: ", st_crs(gplot_elevation))
-} else {
-  message("Elevation data does not have an explicit CRS (assumed lat/lon)")
-}
-
-
-# Ensure CRS consistency and prevent geometry issues
-sf::sf_use_s2(FALSE)  
-projected_crs <- 32198  # NAD83 / Quebec Lambert (better for local projections)
-
-# Reproject to a projected CRS for accurate cropping
-simplified_water    <- st_transform(st_make_valid(simplified_water), crs = projected_crs)
-
-# Convert bbox to projected CRS and crop data
-bbox_projected <- st_transform(st_as_sfc(bbox), crs = projected_crs)
-
-simplified_water    <- st_crop(simplified_water, bbox_projected)
-message("Simplified water data after cropping: ", st_geometry_type(simplified_water))
-message("Number of features after cropping: ", nrow(simplified_water))
-
-
-# Convert back to latitude/longitude for plotting
-simplified_water    <- st_transform(simplified_water, crs = 4269)
-
-# Read elevation data and filter for bounding box region
-gplot_elevation <- readRDS(elevation_file) %>%
-  filter(x >= bbox$xmin, x <= bbox$xmax, y >= bbox$ymin, y <= bbox$ymax)
-
-message("Number of elevation points after filtering: ", nrow(gplot_elevation))
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 4. Create a Circle Around Focal Point
-# ─────────────────────────────────────────────────────────────────────────────
-
+# Generate a lat/lon circle using trigonometry
+# We approximate the Earth's surface as a sphere, so we:
+# - Generate `n_points` along a unit circle (0 to 2π radians)
+# - Scale by `radius_lon` and `radius_lat` to account for latitude distortion
+# - Adjust longitude scaling with `cos(lat)` to preserve proportionality
 make_circle <- function(lon, lat, radius_km, n_points = 100) {
-  angle <- seq(0, 2 * pi, length.out = n_points)
-  radius_lon <- km_to_deg(radius_km) / cos(lat * pi / 180)  
-  radius_lat <- km_to_deg(radius_km)
+  angle <- seq(0, 2 * pi, length.out = n_points)  # Angles from 0 to 2π
+  radius_lon <- km_to_deg(radius_km) / cos(lat * pi / 180)  # Adjusted for latitude
+  radius_lat <- km_to_deg(radius_km)  # Latitude radius conversion
 
   data.frame(
-    lon = lon + radius_lon * cos(angle),
-    lat = lat + radius_lat * sin(angle)
+    lon = lon + radius_lon * cos(angle),  # X-coordinates (longitude)
+    lat = lat + radius_lat * sin(angle)   # Y-coordinates (latitude)
   )
 }
 
-# Create a circle with a 30 km radius around the focal point
-circle_data <- make_circle(focal_point$lon, focal_point$lat, 25)
+# Create a circle with a 27 km radius
+circle_data <- make_circle(focal_point$lon, focal_point$lat, 27)
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 5. Plot the Map with Elevation Data and Circle
+# 4. Generate and Save the Map
 # ─────────────────────────────────────────────────────────────────────────────
 
 p <- ggplot() +
-  # (A) Elevation Background
+  # (A) Elevation background
   geom_raster(data = gplot_elevation, aes(x = x, y = y, fill = value), alpha = 0.8) +
-  scale_fill_gradientn(colors = terrain.colors(10), name = "Elevation (m)") +
+  scale_fill_gradientn(colors = terrain.colors(10), name = "Elevation (m)") +  # Terrain-like color scale
 
-  # (C) Water Features
-  geom_sf(data = simplified_water, color = "grey60", fill = 'aliceblue', size = 0.3, alpha = 0.6) +
+  # (B) Water features (rivers and lakes)
+  geom_sf(data = simplified_water, color = "grey60", fill = "aliceblue", size = 0.1, alpha = 1) +
 
-  # (D) Draw Circle
-  geom_polygon(data = circle_data, aes(x = lon, y = lat), color = "red", fill = NA, linetype = "dashed") +
-  
-  # (E) Mark the Focal Point
-  geom_point(data = focal_point, aes(x = lon, y = lat), shape = 3, size = 6, color = "red") +
-  geom_text(data = focal_point, aes(x = lon, y = lat, label = name), nudge_y = 0.3, size = 5, color = "black") +
+  # (C) Reference circle and focal point
+  geom_polygon(data = circle_data, aes(x = lon, y = lat), color = "grey20", fill = NA, linetype = "solid", linewidth = 0.2) +
+  geom_point(data = focal_point, aes(x = lon, y = lat), shape = 3, size = 2, color = "grey20") +
+  geom_text(data = focal_point, aes(x = lon, y = lat, label = name), nudge_y = 0.05, size = 2, color = "black") +
 
-  # (F) Map Adjustments
+  # (D) Map adjustments
   theme_classic() +
   coord_sf(
-    xlim = c(bbox$xmin + margin_factor * x_range, bbox$xmax - margin_factor * x_range),
-    ylim = c(bbox$ymin + margin_factor * y_range, bbox$ymax - margin_factor * y_range)) +
-  annotation_scale(location = "bl", width_hint = 0.5) +
+    xlim = c(bbox$xmin + margin_factor * x_range, bbox$xmax - margin_factor * x_range), # Crop 5% inward
+    ylim = c(bbox$ymin + margin_factor * y_range, bbox$ymax - margin_factor * y_range)
+  ) +
+  annotation_scale(location = "bl", width_hint = 0.5) +  # Scale bar
   annotation_north_arrow(location = "bl", which_north = "true",
                          pad_x = unit(0.2, "in"), pad_y = unit(0.2, "in"),
-                         style = north_arrow_fancy_orienteering) +
-  labs(title = "Charlevoix Astrobleme",x="Longitude", y="Latitude")
+                         style = north_arrow_fancy_orienteering) +  # North arrow
+  labs(title = "Charlevoix Astrobleme", x = "Longitude", y = "Latitude") +
+  theme(plot.title = element_text(hjust = 0.5))  # Center title
 
 # Save the plot
-ggsave(p, filename = output_file, width = 8, height = 8, dpi = 300)
+ggsave(p, filename = output_file, width = 8, height = 6, dpi = 600)
 message("Plot saved to: ", output_file)
