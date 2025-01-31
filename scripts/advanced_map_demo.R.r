@@ -38,7 +38,7 @@ focal_point <- data.frame(name = "Mont Éboulements", lon = -70.3, lat = 47.5333
 km_to_deg <- function(km) km / 111  
 
 # Define bounding box limits (10 km buffer from focal point)
-buffer_km <- 10  
+buffer_km <- 100  
 
 bbox <- sf::st_bbox(c(
   xmin = focal_point$lon - km_to_deg(buffer_km),
@@ -46,6 +46,11 @@ bbox <- sf::st_bbox(c(
   ymin = focal_point$lat - km_to_deg(buffer_km),
   ymax = focal_point$lat + km_to_deg(buffer_km)
 ), crs = 4269)
+
+# Define cropping factor (5% margin reduction)
+margin_factor <- 0.05  
+x_range <- bbox$xmax - bbox$xmin
+y_range <- bbox$ymax - bbox$ymin
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 3. Read and Crop Data
@@ -98,8 +103,8 @@ make_circle <- function(lon, lat, radius_km, n_points = 100) {
   )
 }
 
-# Create a circle with a 5 km radius around the focal point
-circle_data <- make_circle(focal_point$lon, focal_point$lat, 5)
+# Create a circle with a 30 km radius around the focal point
+circle_data <- make_circle(focal_point$lon, focal_point$lat, 25)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 5. Plot the Map with Elevation Data and Circle
@@ -111,7 +116,7 @@ p <- ggplot() +
   scale_fill_gradientn(colors = terrain.colors(10), name = "Elevation (m)") +
   
   # (B) Political Boundaries
-  geom_sf(data = political_processed, fill = "gray90", color = "black", size = 0.3, alpha = 0.5) +
+  #geom_sf(data = political_processed, fill = "gray90", color = "black", size = 0.3, alpha = 0.5) +
 
   # (C) Water Features
   geom_sf(data = simplified_water, color = "blue", fill = "lightblue", size = 0.3, alpha = 0.6) +
@@ -125,7 +130,9 @@ p <- ggplot() +
 
   # (F) Map Adjustments
   theme_classic() +
-  coord_sf(xlim = c(bbox$xmin, bbox$xmax), ylim = c(bbox$ymin, bbox$ymax)) +
+  coord_sf(
+    xlim = c(bbox$xmin + margin_factor * x_range, bbox$xmax - margin_factor * x_range),
+    ylim = c(bbox$ymin + margin_factor * y_range, bbox$ymax - margin_factor * y_range)) +
   annotation_scale(location = "bl", width_hint = 0.5) +
   annotation_north_arrow(location = "bl", which_north = "true",
                          pad_x = unit(0.2, "in"), pad_y = unit(0.2, "in"),
