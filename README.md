@@ -2,6 +2,13 @@
 
 This repository provides an **R script and dataset** for creating a **geographic map of Quebec**, focusing on **topography and hydrology**. The main script processes and visualizes elevation data alongside water features (rivers, lakes, and watersheds). The output is a **high-resolution background map** suitable for presentations, publications, and further geographic analysis.
 
+These scripts are **highly customizable**, allowing users to modify layers, add new data sources, and experiment with **different geographic features**. This project serves as a **great starting point for programmatic map-making**, demonstrating how to:
+- Load and **combine multiple geospatial datasets** from different sources.
+- Customize **labels, points, and geometric annotations** (e.g., circles, north arrows, scale bars).
+- Generate **publication-quality maps** with **ggplot2** and **sf**.
+
+Whether you're a researcher, student, or GIS enthusiast, this repository provides a **practical introduction to geographic visualization in R** and can be adapted for various use cases.
+
 ![Example Map](https://github.com/LukeAndersonTrocme/geographic_maps/blob/main/output/advanced_map_demo.jpg)
 
 ## Features
@@ -72,15 +79,6 @@ The geospatial data used in this repository is sourced from **Open Canada’s pu
 [→ Open Canada: Digital Elevation Model](https://open.canada.ca/data/en/dataset/7f245e4d-76c2-4caa-951a-45d1d2051333)
 
 - Contains **gridded elevation data** used for terrain visualization.
-
----
-
-## **Why Use This?**
-
-- **Fast and simple** way to generate **publication-quality geographic maps**.
-- Works with **pre-processed datasets**, avoiding complex GIS tools.
-- Easy to **extend and customize** (e.g., add new layers, modify themes).
-- **Useful for researchers and educators** working with spatial data in R.
 
 ---
 
