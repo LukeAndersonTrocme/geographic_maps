@@ -40,11 +40,12 @@ km_to_deg <- function(km) km / 111
 # Define bounding box limits (10 km buffer from focal point)
 buffer_km <- 100  
 
+# Define the current bounding box
 bbox <- sf::st_bbox(c(
-  xmin = focal_point$lon - km_to_deg(buffer_km),
-  xmax = focal_point$lon + km_to_deg(buffer_km),
-  ymin = focal_point$lat - km_to_deg(buffer_km),
-  ymax = focal_point$lat + km_to_deg(buffer_km)
+  xmin = -73.0,  
+  xmax = -68.0,  
+  ymin = 46.5,  
+  ymax = 49.0  
 ), crs = 4269)
 
 # Define cropping factor (5% margin reduction)
@@ -126,7 +127,7 @@ p <- ggplot() +
   
   # (E) Mark the Focal Point
   geom_point(data = focal_point, aes(x = lon, y = lat), shape = 3, size = 6, color = "red") +
-  geom_text(data = focal_point, aes(x = lon, y = lat, label = name), nudge_y = 0.1, size = 5, color = "black") +
+  geom_text(data = focal_point, aes(x = lon, y = lat, label = name), nudge_y = 0.3, size = 5, color = "black") +
 
   # (F) Map Adjustments
   theme_classic() +
