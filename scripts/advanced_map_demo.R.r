@@ -3,7 +3,7 @@
 # advanced_map_demo.R
 # This script demonstrates how to:
 # 1) Load and visualize elevation data from an RDS file
-# 2) Plot a geographic map with political boundaries and water features
+# 2) Plot a geographic map with water features
 # 3) Draw a circle around a focal point on the map
 
 suppressPackageStartupMessages({
@@ -21,7 +21,6 @@ suppressPackageStartupMessages({
 data_dir   <- here::here("data")
 output_dir <- here::here("output")
 
-political_file  <- file.path(data_dir, "political_processed.rds")
 water_file      <- file.path(data_dir, "complete_watercourse_simplified_by_wts.rds")
 elevation_file  <- file.path(data_dir, "alt_raster.RDS")  # Preprocessed elevation data
 
@@ -53,41 +52,62 @@ margin_factor <- 0.05
 x_range <- bbox$xmax - bbox$xmin
 y_range <- bbox$ymax - bbox$ymin
 
+# Print bbox details before cropping
+message("Bounding box limits: xmin=", bbox$xmin, ", xmax=", bbox$xmax,
+        ", ymin=", bbox$ymin, ", ymax=", bbox$ymax)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 3. Read and Crop Data
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Ensure all required files exist
-missing_files <- c(political_file, water_file, elevation_file)[!file.exists(c(political_file, water_file, elevation_file))]
+missing_files <- c(water_file, elevation_file)[!file.exists(c(water_file, elevation_file))]
 if (length(missing_files) > 0) {
   stop("Error: Missing input files:\n", paste(missing_files, collapse = "\n"))
 }
 
 # Read spatial data
-political_processed <- readRDS(political_file)
-simplified_water    <- readRDS(water_file)
+simplified_water <- readRDS(water_file)
+
+# Print CRS info
+message("CRS of water features from RDS: ", st_crs(simplified_water))
+
+# Read elevation data
+gplot_elevation <- readRDS(elevation_file)
+
+# Check if elevation data has CRS (it may not, since it's a data frame)
+if ("sf" %in% class(gplot_elevation)) {
+  message("CRS of elevation data: ", st_crs(gplot_elevation))
+} else {
+  message("Elevation data does not have an explicit CRS (assumed lat/lon)")
+}
+
 
 # Ensure CRS consistency and prevent geometry issues
 sf::sf_use_s2(FALSE)  
 projected_crs <- 32198  # NAD83 / Quebec Lambert (better for local projections)
 
 # Reproject to a projected CRS for accurate cropping
-political_processed <- st_transform(st_make_valid(political_processed), crs = projected_crs)
 simplified_water    <- st_transform(st_make_valid(simplified_water), crs = projected_crs)
 
 # Convert bbox to projected CRS and crop data
 bbox_projected <- st_transform(st_as_sfc(bbox), crs = projected_crs)
 
-political_processed <- st_crop(political_processed, bbox_projected)
 simplified_water    <- st_crop(simplified_water, bbox_projected)
+message("Simplified water data after cropping: ", st_geometry_type(simplified_water))
+message("Number of features after cropping: ", nrow(simplified_water))
+
 
 # Convert back to latitude/longitude for plotting
-political_processed <- st_transform(political_processed, crs = 4269)
 simplified_water    <- st_transform(simplified_water, crs = 4269)
 
 # Read elevation data and filter for bounding box region
 gplot_elevation <- readRDS(elevation_file) %>%
   filter(x >= bbox$xmin, x <= bbox$xmax, y >= bbox$ymin, y <= bbox$ymax)
+
+message("Number of elevation points after filtering: ", nrow(gplot_elevation))
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 4. Create a Circle Around Focal Point
@@ -115,12 +135,9 @@ p <- ggplot() +
   # (A) Elevation Background
   geom_raster(data = gplot_elevation, aes(x = x, y = y, fill = value), alpha = 0.8) +
   scale_fill_gradientn(colors = terrain.colors(10), name = "Elevation (m)") +
-  
-  # (B) Political Boundaries
-  #geom_sf(data = political_processed, fill = "gray90", color = "black", size = 0.3, alpha = 0.5) +
 
   # (C) Water Features
-  geom_sf(data = simplified_water, color = "blue", fill = "lightblue", size = 0.3, alpha = 0.6) +
+  geom_sf(data = simplified_water, color = "grey60", fill = 'aliceblue', size = 0.3, alpha = 0.6) +
 
   # (D) Draw Circle
   geom_polygon(data = circle_data, aes(x = lon, y = lat), color = "red", fill = NA, linetype = "dashed") +
@@ -138,7 +155,7 @@ p <- ggplot() +
   annotation_north_arrow(location = "bl", which_north = "true",
                          pad_x = unit(0.2, "in"), pad_y = unit(0.2, "in"),
                          style = north_arrow_fancy_orienteering) +
-  labs(title = "Elevation Map with Focal Circle")
+  labs(title = "Charlevoix Astrobleme",x="Longitude", y="Latitude")
 
 # Save the plot
 ggsave(p, filename = output_file, width = 8, height = 8, dpi = 300)
