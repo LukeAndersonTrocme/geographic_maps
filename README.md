@@ -84,10 +84,31 @@ The geospatial data used in this repository is sourced from **Open Canada’s pu
 
 ---
 
+## **Future Updates**
+
+I plan to update this repository with more details on how the **pre-processed RDS files** (elevation, water features) were generated. This will include:
+- The raw geospatial data sources used.
+- The processing steps taken in **R** (e.g., cropping, simplifying, and filtering datasets).
+- Scripts to allow users to recreate the datasets from scratch.
+
+Stay tuned for future updates! 🚀
+
+---
+
+
 ## **License**
 
 This project is licensed under the **MIT License**.
 
-## **Author**
+## **Contributing & Citation**
 
-[Luke Anderson-Trocmé](https://github.com/LukeAndersonTrocme)
+### **Report Issues**
+If you encounter any **bugs** or have **suggestions**, please feel free to **open an issue** in the repository. Your feedback is welcome!
+
+### **Cite This Work**
+If you use this project in your research, please consider citing:
+
+**Luke Anderson-Trocmé et al.** (2023).  
+*"On the genes, genealogies, and geographies of Quebec."*  
+Science, 380, 849-855.  
+[DOI: 10.1126/science.add5300](https://www.science.org/doi/10.1126/science.add5300)
