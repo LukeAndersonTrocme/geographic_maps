@@ -1,65 +1,93 @@
-# Quebec Background Maps
+# Quebec Geographic Maps
 
-This repository contains an R script and associated data files for building a **background map of Quebec**, including political boundaries, watershed polygons, and watercourses. The result is saved as both an RDS (ggplot object) and a JPEG image for convenient reuse and visualization.
+This repository provides an **R script and dataset** for creating a **geographic map of Quebec**, focusing on **topography and hydrology**. The main script processes and visualizes elevation data alongside water features (rivers, lakes, and watersheds). The output is a **high-resolution background map** suitable for presentations, publications, and further geographic analysis.
 
-## Contents
+![Example Map](https://github.com/LukeAndersonTrocme/geographic_maps/blob/main/output/advanced_map_demo.jpg)
 
-- **scripts/create_background_map.R**  
-  - An R script that reads the simplified `.rds` data (political boundaries, watersheds, watercourse polygons), fixes invalid geometries, applies filters (e.g., removing small polygons), and saves a final `bg_map` in both `.rds` and `.jpg` format.
+## Features
 
-- **data/political_processed.rds**  
-  - Pre-processed polygons for Canada’s provinces/territories, cropped to focus on Quebec.
-- **data/wts_processed.rds**  
-  - Watershed polygons (cropped and simplified).
-- **data/complete_watercourse_simplified_by_wts.RDS**  
-  - Watercourse lines/polygons (rivers, lakes) aggregated and simplified.
+- Uses **pre-processed geospatial data** (elevation, water features) to generate a background map.
+- Includes **elevation shading** using rasterized digital elevation model (DEM) data.
+- Displays **watercourses and watersheds** from open Canadian datasets.
+- Adds a **reference circle** around a focal point (Mont Éboulements), demonstrating geographic visualization techniques.
+- Outputs both a **ggplot2 RDS object** and a **JPEG image** for easy reuse.
 
-- **output/background_map.rds**  
-  - The final ggplot object containing the background map layers.
-- **output/background_map.jpg**  
-  - A high-resolution image of the final map.
+---
 
-## Usage
+## **Usage**
 
-1. **Clone this repository**:
-   ```bash
-   git clone https://github.com/yourusername/quebec-background-map.git
-
-2. Install required packages in R (e.g., dplyr, sf, ggplot2, ggspatial, rmapshaper, data.table).
-3. Run the script:
+### **1. Clone the Repository**
+```bash
+git clone https://github.com/LukeAndersonTrocme/geographic_maps.git
+cd geographic_maps/scripts
 ```
-cd quebec-background-map/scripts
-Rscript create_background_map.R
+### **2. Install Required R Packages**
 ```
+Rscript install_dependencies.r
+```
+### 3. **Run the Script**
+```
+Rscript advanced_map_demo.R
+```
+The generated map will be saved in the output/ folder as:
+- advanced_map_demo.jpg (High-resolution image)
+- advanced_map_demo.rds (ggplot2 object for further customization)
 
-4. The script reads the RDS files from data/ and saves outputs in output/.
+## **Contents**
 
-## Data Sources
-1. Administrative Boundaries in Canada - CanVec Series
+### **Scripts**
 
-[Open Canada: Administrative Boundaries](https://open.canada.ca/data/en/dataset/306e5004-534b-4110-9feb-58e3a5c3fd97)
+- **`scripts/advanced_map_demo.R`**
+    - Main script for processing elevation and hydrology data.
+    - Crops datasets, applies filters, and generates the final geographic visualization.
+    - Saves output as a `.jpg` and `.rds` file.
 
-The CanVec multiscale series provides prepackaged downloads or via a Geospatial data extraction tool.
-Used here to obtain the political boundaries for Quebec (political_processed.rds).
+### **Data (Pre-processed)**
 
-2. National Hydro Network - NHN - GeoBase Series
+- **`data/alt_raster.RDS`** – Elevation data from a **Canadian Digital Elevation Model (CDEM)** raster.
+- **`data/complete_watercourse_simplified_by_wts.RDS`** – Simplified watercourses (rivers, lakes) aggregated by watersheds.
 
-[Open Canada: National Hydro Network](https://open.canada.ca/data/en/dataset/a4b190fe-e090-4e6d-881e-b87956c07977)
+### **Output**
 
-Contains geospatial data describing Canada’s inland surface waters (lakes, rivers, streams, obstacles).
-We used this to build the watershed polygons (wts_processed.rds) and watercourse data (complete_watercourse_simplified_by_wts.RDS).
-
-3. Canadian Digital Elevation Model (CDEM)
-
-[Open Canada: Digital Elevation Model](https://open.canada.ca/data/en/dataset/7f245e4d-76c2-4caa-951a-45d1d2051333)
-
-Note: The script here doesn’t directly use DEM data (yet), but it’s another relevant geospatial dataset from Open Canada.
+- **`output/advanced_map_demo.jpg`** – Final map visualization (JPEG).
+- **`output/advanced_map_demo.rds`** – ggplot2 object for further modification.
 
 
-All of these data sources are made accessible via [Open Canada’s geospatial portal](https://open.canada.ca/).
+---
 
-## License
-Licensed under the MIT License.
+## **Data Sources**
 
-## Author
-Luke Anderson-Trocmé
+The geospatial data used in this repository is sourced from **Open Canada’s public datasets**:
+
+### **1. Water Features (Rivers, Lakes, Watersheds)**
+
+**National Hydro Network (NHN) – GeoBase Series**  
+[→ Open Canada: National Hydro Network](https://open.canada.ca/data/en/dataset/a4b190fe-e090-4e6d-881e-b87956c07977)
+
+- Provides geospatial data for **rivers, lakes, and drainage basins** across Canada.
+
+### **2. Elevation Data**
+
+**Canadian Digital Elevation Model (CDEM)**  
+[→ Open Canada: Digital Elevation Model](https://open.canada.ca/data/en/dataset/7f245e4d-76c2-4caa-951a-45d1d2051333)
+
+- Contains **gridded elevation data** used for terrain visualization.
+
+---
+
+## **Why Use This?**
+
+- **Fast and simple** way to generate **publication-quality geographic maps**.
+- Works with **pre-processed datasets**, avoiding complex GIS tools.
+- Easy to **extend and customize** (e.g., add new layers, modify themes).
+- **Useful for researchers and educators** working with spatial data in R.
+
+---
+
+## **License**
+
+This project is licensed under the **MIT License**.
+
+## **Author**
+
+[Luke Anderson-Trocmé](https://github.com/LukeAndersonTrocme)
